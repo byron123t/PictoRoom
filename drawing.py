@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import base64
+import io
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
+
 import tkinter as tk
 from tkinter import *
 import png
@@ -15,6 +18,7 @@ prev_y = 0
 img = 0 # garbage value
 top = 0 # garbage value
 brush_size = 5
+is_drawing_in_queue = False
 
 def mouse_click(event, draw_window, erase):
 	global prev_x
@@ -59,13 +63,14 @@ def create_drawing():
 	global top
 	global img_on_canvas
 	global canvas
+	global is_drawing_in_queue
+	is_drawing_in_queue = True
 	if (not draw_window_open):
 		draw_window_open = True
 		draw_window = tk.Toplevel(top)
 		canvas = Canvas(draw_window, width=WIDTH, height=HEIGHT, bg='black')
 		img_on_canvas = canvas.create_image(0, 0, image=img, anchor=NW)
 		canvas.pack()
-#		draw_window.update()
 		canvas.update()
 		# send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
 		draw_window.bind("<Button-1>", lambda event, arg=draw_window: mouse_click(event, arg, False))
@@ -87,12 +92,17 @@ def close_drawing(draw_window):
 def send_image_info(draw_window):
 	close_drawing(draw_window)
 	draw_png()
-	print(image)
 
 def send_message():
 	global image
-	image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
-	draw_png()
+	global is_drawing_in_queue
+	if (is_drawing_in_queue):
+		if (s):
+			foo = open('temp.png', 'rb').read()
+			s.send(base64.b64encode(foo))
+		image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
+		draw_png()
+		is_drawing_in_queue = False
 
 def get_magnitude(delt_x, delt_y):
 	return (delt_x**2 + delt_y**2)**.5
@@ -135,29 +145,68 @@ def draw_png():
 	f.close()
 	img = ImageTk.PhotoImage(Image.open('temp.png'))
 
-def main():
+BUF_SIZE = 16384
+
+foo = []
+
+num_images = 0
+
+def handle_incoming(s, frame, canvas):
+	global foo, num_images
+	while (True):
+		data = s.recv(BUF_SIZE)
+		if (not data):
+			sys.exit(1)
+		foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
+		l = tk.Label(frame, image=foo[-1])
+		l.pack()
+		num_images += 1
+		canvas.config(scrollregion=(0, 0, 300, 300 * num_images))
+
+def on_configure(event, canvas):
+    canvas.configure(scrollregion=canvas.bbox('all'))
+
+def main(s_s=None):
+	global s
 	global top
 	global img
+	s = s_s
 	top = tk.Tk()
 	top.title("PictoRoom")
 
-	messages_frame = tk.Frame(top)
-	scrollbar = tk.Scrollbar(messages_frame)
-	msg_list = tk.Listbox(messages_frame, height=15, width=50,
-						yscrollcommand=scrollbar.set)
-	scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-	msg_list.pack(side=tk.LEFT, fill=tk.BOTH)
-	msg_list.pack()
+	superframe = tk.Frame(top)
 
-	messages_frame.pack()
+	canvas = tk.Canvas(superframe, height=300, width=300)
+	canvas.pack(side=tk.LEFT)
+
+	scrollbar = tk.Scrollbar(superframe, command=canvas.yview)
+	scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+	canvas.configure(yscrollcommand=scrollbar.set)
+
+	canvas.bind('<Configure>', lambda event: on_configure(event, canvas))
+
+	frame = tk.Frame(canvas)
+	canvas.create_window((0,0), window=frame, anchor='nw')
+
+	superframe.pack()
 
 	new_drawing_button = tk.Button(top, text="New Drawing", command=create_drawing)
 	new_drawing_button.pack()
 	send_button = tk.Button(top, text="Send", command=send_message)
 	send_button.pack()
+
+	if (s):
+		Thread(target=lambda: handle_incoming(s, frame, canvas), daemon=True).start()
+
 	img = None
 	draw_png()
-	tk.mainloop()
+
+	top.mainloop()
+
 img_on_canvas = None
+
+s = None
+
 if __name__ == "__main__":
-    main()
+	main()
