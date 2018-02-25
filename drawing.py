@@ -2,6 +2,7 @@
 import base64
 import io
 from socket import AF_INET, socket, SOCK_STREAM
+import sys
 from threading import Thread
 
 import tkinter as tk
@@ -136,17 +137,20 @@ num_images = 0
 def handle_incoming(s, frame, canvas):
 	global foo, num_images
 	while (True):
-		data = s.recv(BUF_SIZE)
-		if (not data):
+		try:
+			data = s.recv(BUF_SIZE)
+			if (not data):
+				sys.exit(1)
+			foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
+			l = tk.Label(frame, image=foo[-1])
+			l.pack()
+			num_images += 1
+			canvas.config(scrollregion=(0, 0, 300, 300 + frame.winfo_reqheight()))
+		except Exception:
 			sys.exit(1)
-		foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
-		l = tk.Label(frame, image=foo[-1])
-		l.pack()
-		num_images += 1
-		canvas.config(scrollregion=(0, 0, 300, 300 * num_images))
 
 def on_configure(event, canvas):
-    canvas.configure(scrollregion=canvas.bbox('all'))
+	canvas.configure(scrollregion=canvas.bbox('all'))
 
 def main(s_s=None):
 	global s
@@ -158,7 +162,7 @@ def main(s_s=None):
 
 	superframe = tk.Frame(top)
 
-	canvas = tk.Canvas(superframe, height=300, width=300)
+	canvas = tk.Canvas(superframe, height=301, width=300)
 	canvas.pack(side=tk.LEFT)
 
 	scrollbar = tk.Scrollbar(superframe, command=canvas.yview)
