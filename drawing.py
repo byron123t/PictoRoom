@@ -14,13 +14,14 @@ prev_x = 0
 prev_y = 0
 img = 0 # garbage value
 top = 0 # garbage value
+brush_size = 5
 
 def mouse_click(event, draw_window, erase):
 	global prev_x
 	global prev_y
 	x = event.x
 	y = event.y
-	change_pixels_in_radius(5, x, y, erase)
+	change_pixels_in_radius(x, y, erase)
 	prev_x = x
 	prev_y = y
 	render(draw_window)
@@ -38,6 +39,19 @@ def mouse_move(event, draw_window, erase):
 def exit_click(event, draw_window):
 	send_image_info(draw_window)
 	close_drawing(draw_window)
+
+def scroll_brush_size(event):
+	global brush_size
+	if event.num == 5 or event.delta == -120:
+		brush_size -= 1
+	if event.num == 4 or event.delta == 120:
+		brush_size += 1
+	
+	if brush_size < 1:
+		brush_size = 1
+	elif brush_size > 15:
+		brush_size = 15
+	int(brush_size)
 
 def create_drawing():
 	global draw_window_open
@@ -59,6 +73,9 @@ def create_drawing():
 		draw_window.bind("<Button-2>", lambda event, arg=draw_window: exit_click(event, arg))
 		draw_window.bind("<Button-3>", lambda event, arg=draw_window: mouse_click(event, arg, True))
 		draw_window.bind("<B3-Motion>", lambda event, arg=draw_window: mouse_move(event, arg, True))
+		draw_window.bind("<Button-4>", scroll_brush_size)
+		draw_window.bind("<Button-5>", scroll_brush_size)
+		draw_window.bind("<MouseWheel>", scroll_brush_size)
 		# send_drawing_button.pack()
 		draw_window.protocol("WM_DELETE_WINDOW", lambda: close_drawing(draw_window))
 
@@ -95,9 +112,10 @@ def draw_line(draw_window, x, y, draw):
 	while get_magnitude(x - prev_x, y - prev_y) > 1:
 		prev_x += x_incr
 		prev_y += y_incr
-		change_pixels_in_radius(5, int(prev_x), int(prev_y), draw)
+		change_pixels_in_radius(int(prev_x), int(prev_y), draw)
 
-def change_pixels_in_radius(brush_size, x, y, draw):
+def change_pixels_in_radius(x, y, draw):
+	global brush_size
 	for i in range(-1 * brush_size + 1, brush_size):
 		for j in range(-1 * brush_size + 1, brush_size):
 			global image
@@ -118,7 +136,6 @@ def draw_png():
 	img = ImageTk.PhotoImage(Image.open('temp.png'))
 
 def main():
-	print("in main methods")
 	global top
 	global img
 	top = tk.Tk()
