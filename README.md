@@ -29,5 +29,4 @@ Thus, a message should be structured in the following way:
     message:          | unknown | base64 encoded png
     magic terminator: | 4 bytes | 0xdeadbeef
 
-See it in action at
-[pictochat://18.219.82.126:8000](pictochat://18.219.82.126:8000).
+See it in action [here](https://raw.githubusercontent.com/byron123t/PictoRoom/master/click_me.html)
