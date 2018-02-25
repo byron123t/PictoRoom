@@ -2,6 +2,7 @@
 import base64
 import io
 from socket import AF_INET, socket, SOCK_STREAM
+import sys
 from threading import Thread
 
 import tkinter as tk
@@ -17,6 +18,7 @@ prev_x = 0
 prev_y = 0
 img = 0 # garbage value
 top = 0 # garbage value
+brush_size = 5
 is_drawing_in_queue = False
 
 def mouse_click(event, draw_window, erase):
@@ -24,7 +26,7 @@ def mouse_click(event, draw_window, erase):
 	global prev_y
 	x = event.x
 	y = event.y
-	change_pixels_in_radius(5, x, y, erase)
+	change_pixels_in_radius(x, y, erase)
 	prev_x = x
 	prev_y = y
 	render(draw_window)
@@ -42,6 +44,19 @@ def mouse_move(event, draw_window, erase):
 def exit_click(event, draw_window):
 	send_image_info(draw_window)
 	close_drawing(draw_window)
+
+def scroll_brush_size(event):
+	global brush_size
+	if event.num == 5 or event.delta == -120:
+		brush_size -= 1
+	if event.num == 4 or event.delta == 120:
+		brush_size += 1
+	
+	if brush_size < 1:
+		brush_size = 1
+	elif brush_size > 15:
+		brush_size = 15
+	int(brush_size)
 
 def create_drawing():
 	global draw_window_open
@@ -64,6 +79,9 @@ def create_drawing():
 		draw_window.bind("<Button-2>", lambda event, arg=draw_window: exit_click(event, arg))
 		draw_window.bind("<Button-3>", lambda event, arg=draw_window: mouse_click(event, arg, True))
 		draw_window.bind("<B3-Motion>", lambda event, arg=draw_window: mouse_move(event, arg, True))
+		draw_window.bind("<Button-4>", scroll_brush_size)
+		draw_window.bind("<Button-5>", scroll_brush_size)
+		draw_window.bind("<MouseWheel>", scroll_brush_size)
 		# send_drawing_button.pack()
 		draw_window.protocol("WM_DELETE_WINDOW", lambda: close_drawing(draw_window))
 
@@ -105,9 +123,10 @@ def draw_line(draw_window, x, y, draw):
 	while get_magnitude(x - prev_x, y - prev_y) > 1:
 		prev_x += x_incr
 		prev_y += y_incr
-		change_pixels_in_radius(5, int(prev_x), int(prev_y), draw)
+		change_pixels_in_radius(int(prev_x), int(prev_y), draw)
 
-def change_pixels_in_radius(brush_size, x, y, draw):
+def change_pixels_in_radius(x, y, draw):
+	global brush_size
 	for i in range(-1 * brush_size + 1, brush_size):
 		for j in range(-1 * brush_size + 1, brush_size):
 			global image
@@ -136,18 +155,21 @@ num_images = 0
 def handle_incoming(s, frame, canvas):
 	global foo, num_images
 	while (True):
-		data = s.recv(BUF_SIZE)
-		if (not data):
+		try:
+			data = s.recv(BUF_SIZE)
+			if (not data):
+				sys.exit(1)
+			foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
+			l = tk.Label(frame, image=foo[-1])
+			l.pack()
+			num_images += 1
+			canvas.config(scrollregion=(0, 0, 300, 300 + frame.winfo_reqheight()))
+			canvas.yview_moveto(1)
+		except Exception:
 			sys.exit(1)
-		foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
-		l = tk.Label(frame, image=foo[-1])
-		l.pack()
-		num_images += 1
-		canvas.config(scrollregion=(0, 0, 300, 300 * num_images))
-		canvas.yview_moveto(1)
 		
 def on_configure(event, canvas):
-    canvas.configure(scrollregion=canvas.bbox('all'))
+	canvas.configure(scrollregion=canvas.bbox('all'))
 
 def main(s_s=None):
 	global s
@@ -159,7 +181,7 @@ def main(s_s=None):
 
 	superframe = tk.Frame(top)
 
-	canvas = tk.Canvas(superframe, height=300, width=300)
+	canvas = tk.Canvas(superframe, height=301, width=300)
 	canvas.pack(side=tk.LEFT)
 
 	scrollbar = tk.Scrollbar(superframe, command=canvas.yview)
