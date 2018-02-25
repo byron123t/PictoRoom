@@ -1,10 +1,13 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter as tk
+from tkinter import *
+import png
+from PIL import ImageTk, Image
 
-WIDTH = 3
-HEIGHT = 3
-image = [[(255, 255, 255)] * WIDTH for x in range(HEIGHT)]
+WIDTH = 300
+HEIGHT = 300
+image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
 draw_window_open = False
 prev_x = 0
 prev_y = 0
@@ -33,32 +36,36 @@ def create_drawing():
 	global draw_window_open
 	print("create drawing") # Opens new gui with blank drawing template
 	if (not draw_window_open):
+		draw_window_open = True
 		draw_window = tk.Toplevel(top)
+		canvas = Canvas(draw_window, width=WIDTH, height=HEIGHT, bg='black')
+		canvas.create_image(0, 0, image=img, anchor=NW)
+		canvas.pack()
+#		draw_window.update()
+		canvas.update()
 		send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
 		draw_window.bind("<Button-1>", mouse_click)
 		draw_window.bind("<B1-Motion>", lambda event, arg=draw_window: mouse_move(event, arg))
 		send_drawing_button.pack()
-		draw_window.protocol("CLOSE_DRAW_WINDOW", lambda: close_drawing(draw_window))
-		draw_window_open = True
+		draw_window.protocol("WM_DELETE_WINDOW", lambda: close_drawing(draw_window))
 
 def close_drawing(draw_window):
 	global draw_window_open
 	draw_window_open = False
+	draw_window.destroy()
 
 def send_image_info(draw_window):
 	close_drawing(draw_window)
-	draw_window.destroy()
 	print(image)
 
 def draw_line(draw_window, x, y):
-	for i in range(0, x + 1)
+	for i in range(0, x + 1):
 		slope = (y - prev_y) / (x - prev_x)
 		prev_y += slope
-		if(x - prev_x < 0)
+		if(x - prev_x < 0):
 			prev_x -= 1
-		else
+		else:
 			prev_x += 1
-
 
 def change_pixels_in_radius(brush_size, x, y):
 	for i in range(brush_size):
@@ -70,6 +77,15 @@ def change_pixels_in_radius(brush_size, x, y):
 				if (0 <= x - i and x + i < WIDTH and 0 <= y - j and y - j < HEIGHT):
 					image[x-i][y-j] = [0,0,0]
 				
+
+def render(draw_window, image):
+	f = open('temp.png', 'wb')
+	w = png.Writer(WIDTH, HEIGHT)
+	w.write(f, image)
+	f.close()
+	print("render image")
+	
+	
 top = tk.Tk()
 top.title("PictoRoom")
 
@@ -90,5 +106,16 @@ new_drawing_button = tk.Button(top, text="New Drawing", command=create_drawing)
 new_drawing_button.pack()
 send_button = tk.Button(top, text="Send") # , command=send)
 send_button.pack()
+
+f = open('temp.png', 'wb')
+w = png.Writer(WIDTH, HEIGHT)
+w.write(f, image)
+f.close()
+
+img = ImageTk.PhotoImage(Image.open('temp.png'))
+#img = ImageTk.PhotoImage(Image.open('test.png'))
+#canvas = Canvas(top, width=WIDTH, height=HEIGHT, bg='black')
+#canvas.create_image(0, 0, image=img, anchor=NW)
+#canvas.pack()
 
 tk.mainloop()
