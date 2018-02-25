@@ -6,6 +6,28 @@ WIDTH = 3
 HEIGHT = 3
 image = [[(255, 255, 255)] * WIDTH for x in range(HEIGHT)]
 draw_window_open = False
+prev_x = 0
+prev_y = 0
+
+def mouse_click(event):
+	print("Mouse clicked at", event.x, event.y)
+	global prev_x
+	global prev_y
+	x = event.x
+	y = event.y
+	change_pixels_in_radius(5, x, y)
+	prev_x = x
+	prev_y = y
+
+def mouse_move(event):
+	print("Mouse move")
+	global prev_x
+	global prev_y
+	x = event.x
+	y = event.y
+	# draw_line(draw_window, prev_x, prev_y, x, y)
+	prev_x = x
+	prev_y = y
 
 def create_drawing():
 	global draw_window_open
@@ -13,6 +35,8 @@ def create_drawing():
 	if (not draw_window_open):
 		draw_window = tk.Toplevel(top)
 		send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
+		draw_window.bind("<Button-1>", mouse_click)
+		draw_window.bind("<B1-Motion>", mouse_move)
 		send_drawing_button.pack()
 		draw_window.protocol("CLOSE_DRAW_WINDOW", lambda: close_drawing(draw_window))
 		draw_window_open = True
@@ -26,10 +50,10 @@ def send_image_info(draw_window):
 	draw_window.destroy()
 	print(image)
 
-def draw_line(draw_window):
+def draw_line(draw_window, prev_x, prev_y, x, y):
 	print("draw line") # Use mouse prev and current position to change array values
 
-def change_pixels_in_radius(brush_size):
+def change_pixels_in_radius(brush_size, x, y):
 	print("find pixels in radius")
 
 top = tk.Tk()
