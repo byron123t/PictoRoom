@@ -19,13 +19,13 @@ def mouse_click(event):
 	prev_x = x
 	prev_y = y
 
-def mouse_move(event):
+def mouse_move(event, draw_window):
 	print("Mouse move")
 	global prev_x
 	global prev_y
 	x = event.x
 	y = event.y
-	# draw_line(draw_window, prev_x, prev_y, x, y)
+	draw_line(draw_window, prev_x, prev_y, x, y)
 	prev_x = x
 	prev_y = y
 
@@ -36,7 +36,7 @@ def create_drawing():
 		draw_window = tk.Toplevel(top)
 		send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
 		draw_window.bind("<Button-1>", mouse_click)
-		draw_window.bind("<B1-Motion>", mouse_move)
+		draw_window.bind("<B1-Motion>", lambda event, arg=draw_window: mouse_move(event, arg))
 		send_drawing_button.pack()
 		draw_window.protocol("CLOSE_DRAW_WINDOW", lambda: close_drawing(draw_window))
 		draw_window_open = True
