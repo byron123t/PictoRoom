@@ -159,6 +159,7 @@ def handle_incoming(s, frame, canvas):
 		try:
 			data = s.recv(BUF_SIZE)
 			if (not data):
+				print('disconnected')
 				os._exit(1)
 			foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
 			l = tk.Label(frame, image=foo[-1])
@@ -167,7 +168,7 @@ def handle_incoming(s, frame, canvas):
 			canvas.config(scrollregion=(0, 0, 300, 300 + frame.winfo_reqheight()))
 			canvas.yview_moveto(1)
 		except Exception as e:
-			sys.stderr.write(str(e))
+			sys.stderr.write(traceback.format_exc())
 			os._exit(1)
 
 def on_configure(event, canvas):
