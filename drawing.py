@@ -15,7 +15,6 @@ from PIL import ImageTk, Image
 WIDTH = 300
 HEIGHT = 300
 image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
-draw_window_open = False
 prev_x = 0
 prev_y = 0
 img = 0 # garbage value
@@ -23,7 +22,11 @@ top = 0 # garbage value
 brush_size = 5
 is_drawing_in_queue = False
 
-def mouse_click(event, draw_window, erase):
+def mouse_click(event, top, erase):
+	if event.widget != canvas:
+		return
+	global is_drawing_in_queue
+	is_drawing_in_queue = True
 	global prev_x
 	global prev_y
 	x = event.x
@@ -31,21 +34,23 @@ def mouse_click(event, draw_window, erase):
 	change_pixels_in_radius(x, y, erase)
 	prev_x = x
 	prev_y = y
-	render(draw_window)
+	render(top)
 
-def mouse_move(event, draw_window, erase):
+def mouse_move(event, top, erase):
+	if event.widget != canvas:
+		return
 	global prev_x
 	global prev_y
 	x = event.x
 	y = event.y
-	draw_line(draw_window, x, y, erase)
+	draw_line(top, x, y, erase)
 	prev_x = x
 	prev_y = y
-	render(draw_window)
+	render(top)
 
-def exit_click(event, draw_window):
-	send_image_info(draw_window)
-	close_drawing(draw_window)
+def exit_click(event, top):
+	send_image_info(top)
+	close_drawing(top)
 
 def scroll_brush_size(event):
 	global brush_size
@@ -60,40 +65,23 @@ def scroll_brush_size(event):
 		brush_size = 15
 
 def create_drawing():
-	global draw_window_open
+	global top_open
 	global img
 	global top
 	global img_on_canvas
 	global canvas
-	global is_drawing_in_queue
-	is_drawing_in_queue = True
-	if (not draw_window_open):
-		draw_window_open = True
-		draw_window = tk.Toplevel(top)
-		canvas = Canvas(draw_window, width=WIDTH, height=HEIGHT, bg='black')
-		img_on_canvas = canvas.create_image(0, 0, image=img, anchor=NW)
-		canvas.pack()
-		canvas.update()
-		# send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
-		draw_window.bind("<Button-1>", lambda event, arg=draw_window: mouse_click(event, arg, False))
-		draw_window.bind("<B1-Motion>", lambda event, arg=draw_window: mouse_move(event, arg, False))
-		draw_window.bind("<Button-2>", lambda event, arg=draw_window: exit_click(event, arg))
-		draw_window.bind("<Button-3>", lambda event, arg=draw_window: mouse_click(event, arg, True))
-		draw_window.bind("<B3-Motion>", lambda event, arg=draw_window: mouse_move(event, arg, True))
-		draw_window.bind("<Button-4>", scroll_brush_size)
-		draw_window.bind("<Button-5>", scroll_brush_size)
-		draw_window.bind("<MouseWheel>", scroll_brush_size)
-		# send_drawing_button.pack()
-		draw_window.protocol("WM_DELETE_WINDOW", lambda: close_drawing(draw_window))
-
-def close_drawing(draw_window):
-	global draw_window_open
-	draw_window_open = False
-	draw_window.destroy()
-
-def send_image_info(draw_window):
-	close_drawing(draw_window)
-	draw_png()
+	canvas = Canvas(top, width=WIDTH, height=HEIGHT, bg='black')
+	img_on_canvas = canvas.create_image(0, 0, image=img, anchor=NW)
+	canvas.pack()
+	canvas.update()
+	top.bind("<Button-1>", lambda event, arg=top: mouse_click(event, arg, False))
+	top.bind("<B1-Motion>", lambda event, arg=top: mouse_move(event, arg, False))
+	top.bind("<Button-2>", lambda event, arg=top: exit_click(event, arg))
+	top.bind("<Button-3>", lambda event, arg=top: mouse_click(event, arg, True))
+	top.bind("<B3-Motion>", lambda event, arg=top: mouse_move(event, arg, True))
+	top.bind("<Button-4>", scroll_brush_size)
+	top.bind("<Button-5>", scroll_brush_size)
+	top.bind("<MouseWheel>", scroll_brush_size)
 
 def send_message():
 	global image
@@ -105,11 +93,12 @@ def send_message():
 		image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
 		draw_png()
 		is_drawing_in_queue = False
+		render(top)
 
 def get_magnitude(delt_x, delt_y):
 	return (delt_x ** 2 + delt_y ** 2) ** .5
 
-def draw_line(draw_window, x, y, draw):
+def draw_line(top, x, y, draw):
 	global prev_x
 	global prev_y
 
@@ -135,7 +124,7 @@ def change_pixels_in_radius(x, y, draw):
 				for k in range(3):
 					image[y+i][(x+j) * 3 + k] = int(draw) * 255
 
-def render(draw_window):
+def render(top):
 	draw_png()
 	canvas.itemconfig(img_on_canvas, image=img)
 
@@ -205,8 +194,6 @@ def main(s_s=None):
 
 	superframe.pack()
 
-	new_drawing_button = tk.Button(top, text="New Drawing", command=create_drawing)
-	new_drawing_button.pack()
 	send_button = tk.Button(top, text="Send", command=send_message)
 	send_button.pack()
 
@@ -215,6 +202,7 @@ def main(s_s=None):
 
 	img = None
 	draw_png()
+	create_drawing()
 
 	top.mainloop()
 
