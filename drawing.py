@@ -19,25 +19,29 @@ img = 0 # garbage value
 top = 0 # garbage value
 is_drawing_in_queue = False
 
-def mouse_click(event, draw_window):
+def mouse_click(event, draw_window, erase):
 	global prev_x
 	global prev_y
 	x = event.x
 	y = event.y
-	change_pixels_in_radius(5, x, y)
+	change_pixels_in_radius(5, x, y, erase)
 	prev_x = x
 	prev_y = y
 	render(draw_window)
 
-def mouse_move(event, draw_window):
+def mouse_move(event, draw_window, erase):
 	global prev_x
 	global prev_y
 	x = event.x
 	y = event.y
-	draw_line(draw_window, x, y)
+	draw_line(draw_window, x, y, erase)
 	prev_x = x
 	prev_y = y
 	render(draw_window)
+
+def exit_click(event, draw_window):
+	send_image_info(draw_window)
+	close_drawing(draw_window)
 
 def create_drawing():
 	global draw_window_open
@@ -54,10 +58,13 @@ def create_drawing():
 		img_on_canvas = canvas.create_image(0, 0, image=img, anchor=NW)
 		canvas.pack()
 		canvas.update()
-		send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
-		draw_window.bind("<Button-1>", lambda event, arg=draw_window: mouse_click(event, arg))
-		draw_window.bind("<B1-Motion>", lambda event, arg=draw_window: mouse_move(event, arg))
-		send_drawing_button.pack()
+		# send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
+		draw_window.bind("<Button-1>", lambda event, arg=draw_window: mouse_click(event, arg, False))
+		draw_window.bind("<B1-Motion>", lambda event, arg=draw_window: mouse_move(event, arg, False))
+		draw_window.bind("<Button-2>", lambda event, arg=draw_window: exit_click(event, arg))
+		draw_window.bind("<Button-3>", lambda event, arg=draw_window: mouse_click(event, arg, True))
+		draw_window.bind("<B3-Motion>", lambda event, arg=draw_window: mouse_move(event, arg, True))
+		# send_drawing_button.pack()
 		draw_window.protocol("WM_DELETE_WINDOW", lambda: close_drawing(draw_window))
 
 def close_drawing(draw_window):
@@ -83,28 +90,30 @@ def send_message():
 def get_magnitude(delt_x, delt_y):
 	return (delt_x**2 + delt_y**2)**.5
 
-def draw_line(draw_window, x, y):
+def draw_line(draw_window, x, y, draw):
 	global prev_x
 	global prev_y
 
 	diff_x = x - prev_x
 	diff_y = y - prev_y
 	magnitude = get_magnitude(diff_x, diff_y)
+	if magnitude == 0:
+		return
 	x_incr = diff_x / magnitude
 	y_incr = diff_y / magnitude
 
 	while get_magnitude(x - prev_x, y - prev_y) > 1:
 		prev_x += x_incr
 		prev_y += y_incr
-		change_pixels_in_radius(5, int(prev_x), int(prev_y))
+		change_pixels_in_radius(5, int(prev_x), int(prev_y), draw)
 
-def change_pixels_in_radius(brush_size, x, y):
+def change_pixels_in_radius(brush_size, x, y, draw):
 	for i in range(-1 * brush_size + 1, brush_size):
 		for j in range(-1 * brush_size + 1, brush_size):
 			global image
 			if (0 <= y + i and y + i < WIDTH and 0 <= x + j and x + j < HEIGHT):
 				for k in range(3):
-					image[y+i][(x+j) * 3 + k] = 0
+					image[y+i][(x+j) * 3 + k] = int(draw) * 255
 
 def render(draw_window):
 	draw_png()
