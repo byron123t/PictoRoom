@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import base64
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
+
 import tkinter as tk
 from tkinter import *
 import png
@@ -14,9 +16,9 @@ prev_x = 0
 prev_y = 0
 img = 0 # garbage value
 top = 0 # garbage value
+is_drawing_in_queue = False
 
 def mouse_click(event, draw_window):
-	print("Mouse clicked at", event.x, event.y)
 	global prev_x
 	global prev_y
 	x = event.x
@@ -27,7 +29,6 @@ def mouse_click(event, draw_window):
 	render(draw_window)
 
 def mouse_move(event, draw_window):
-	print("Mouse move")
 	global prev_x
 	global prev_y
 	x = event.x
@@ -43,14 +44,14 @@ def create_drawing():
 	global top
 	global img_on_canvas
 	global canvas
-	print("create drawing") # Opens new gui with blank drawing template
+	global is_drawing_in_queue
+	is_drawing_in_queue = True
 	if (not draw_window_open):
 		draw_window_open = True
 		draw_window = tk.Toplevel(top)
 		canvas = Canvas(draw_window, width=WIDTH, height=HEIGHT, bg='black')
 		img_on_canvas = canvas.create_image(0, 0, image=img, anchor=NW)
 		canvas.pack()
-#		draw_window.update()
 		canvas.update()
 		send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
 		draw_window.bind("<Button-1>", lambda event, arg=draw_window: mouse_click(event, arg))
@@ -66,12 +67,16 @@ def close_drawing(draw_window):
 def send_image_info(draw_window):
 	close_drawing(draw_window)
 	draw_png()
-	print(image)
 
 def send_message():
 	global image
-	image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
-	draw_png()
+	global is_drawing_in_queue
+	if (is_drawing_in_queue):
+		foo = open('temp.png', 'rb').read()
+		print(base64.b64encode(foo).decode())
+		image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
+		draw_png()
+		is_drawing_in_queue = False
 
 def get_magnitude(delt_x, delt_y):
 	return (delt_x**2 + delt_y**2)**.5
@@ -112,7 +117,6 @@ def draw_png():
 	img = ImageTk.PhotoImage(Image.open('temp.png'))
 
 def main():
-	print("in main methods")
 	global top
 	global img
 	top = tk.Tk()
@@ -135,6 +139,8 @@ def main():
 	img = None
 	draw_png()
 	tk.mainloop()
+
 img_on_canvas = None
+
 if __name__ == "__main__":
     main()
