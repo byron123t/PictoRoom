@@ -50,8 +50,15 @@ def send_image_info(draw_window):
 	draw_window.destroy()
 	print(image)
 
-def draw_line(draw_window, prev_x, prev_y, x, y):
-	print("draw line") # Use mouse prev and current position to change array values
+def draw_line(draw_window, x, y):
+	for i in range(0, x + 1)
+		slope = (y - prev_y) / (x - prev_x)
+		prev_y += slope
+		if(x - prev_x < 0)
+			prev_x -= 1
+		else
+			prev_x += 1
+
 
 def change_pixels_in_radius(brush_size, x, y):
 	for i in range(brush_size):
