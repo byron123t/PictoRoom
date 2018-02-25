@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter as tk
@@ -6,14 +5,31 @@ import tkinter as tk
 WIDTH = 3
 HEIGHT = 3
 image = [[(255, 255, 255)] * WIDTH for x in range(HEIGHT)]
-print(image)
-def create_drawing():
-	print("create drawing") # Opens new gui with blank drawing template
+draw_window_open = False
 
-def draw_line():
+def create_drawing():
+	global draw_window_open
+	print("create drawing") # Opens new gui with blank drawing template
+	if (not draw_window_open):
+		draw_window = tk.Toplevel(top)
+		send_drawing_button = tk.Button(draw_window, text="Send", command=lambda: send_image_info(draw_window))
+		send_drawing_button.pack()
+		draw_window.protocol("CLOSE_DRAW_WINDOW", lambda: close_drawing(draw_window))
+		draw_window_open = True
+
+def close_drawing(draw_window):
+	global draw_window_open
+	draw_window_open = False
+
+def send_image_info(draw_window):
+	close_drawing(draw_window)
+	draw_window.destroy()
+	print(image)
+
+def draw_line(draw_window):
 	print("draw line") # Use mouse prev and current position to change array values
 
-def change_pixels_in_radius(int brush_size):
+def change_pixels_in_radius(brush_size):
 	print("find pixels in radius")
 
 top = tk.Tk()
