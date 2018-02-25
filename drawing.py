@@ -148,7 +148,7 @@ def draw_png():
 	f.close()
 	img = ImageTk.PhotoImage(Image.open('temp.png'))
 
-BUF_SIZE = 16384
+BUF_SIZE = 1048576
 
 foo = []
 
