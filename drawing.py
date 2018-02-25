@@ -165,6 +165,7 @@ def handle_incoming(s, frame, canvas):
 			l.pack()
 			num_images += 1
 			canvas.config(scrollregion=(0, 0, 300, 300 + frame.winfo_reqheight()))
+			canvas.yview_moveto(1)
 		except Exception as e:
 			sys.stderr.write(str(e))
 			os._exit(1)
