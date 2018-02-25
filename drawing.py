@@ -72,37 +72,35 @@ def send_message():
 	image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
 	draw_png()
 
+def get_magnitude(delt_x, delt_y):
+	return (delt_x**2 + delt_y**2)**.5
+
 def draw_line(draw_window, x, y):
 	global prev_x
 	global prev_y
-	
-	for i in range(0, x + 1):
-		if (x - prev_x == 0):
-			continue
-		slope = (y - prev_y) / (x - prev_x)
-		prev_y += slope
-		if(x - prev_x < 0):
-			prev_x -= 1
-		else:
-			prev_x += 1
-		change_pixels_in_radius(5, x, y)
+
+	diff_x = x - prev_x
+	diff_y = y - prev_y
+	magnitude = get_magnitude(diff_x, diff_y)
+	x_incr = diff_x / magnitude
+	y_incr = diff_y / magnitude
+
+	while get_magnitude(x - prev_x, y - prev_y) > 1:
+		prev_x += x_incr
+		prev_y += y_incr
+		change_pixels_in_radius(5, int(prev_x), int(prev_y))
 
 def change_pixels_in_radius(brush_size, x, y):
 	for i in range(-1 * brush_size + 1, brush_size):
 		for j in range(-1 * brush_size + 1, brush_size):
 			global image
-			# if (brush_size - i < brush_size - 1 and brush_size - j < brush_size - 1):
 			if (0 <= y + i and y + i < WIDTH and 0 <= x + j and x + j < HEIGHT):
 				for k in range(3):
 					image[y+i][(x+j) * 3 + k] = 0
-			# if (0 <= y - i and y - i < WIDTH and 0 <= x - j and x - j < HEIGHT):				
-			# 	for k in range(3):
-			# 		image[y-i][(x-j) * 3 + k] = 0
 
 def render(draw_window):
 	draw_png()
 	canvas.itemconfig(img_on_canvas, image=img)
-	# draw_window.canvas.update()
 
 def draw_png():
 	global img
@@ -129,12 +127,9 @@ def main():
 
 	messages_frame.pack()
 
-	# entry_field = tk.Entry(top, textvariable=my_msg)
-	# entry_field.bind("<Return>", send)
-	#entry_field.pack()
 	new_drawing_button = tk.Button(top, text="New Drawing", command=create_drawing)
 	new_drawing_button.pack()
-	send_button = tk.Button(top, text="Send", command=send_message) # , command=send)
+	send_button = tk.Button(top, text="Send", command=send_message)
 	send_button.pack()
 	img = ImageTk.PhotoImage(Image.open('temp.png'))
 	tk.mainloop()
@@ -142,7 +137,3 @@ def main():
 img_on_canvas = None
 if __name__ == "__main__":
     main()
-#img = ImageTk.PhotoImage(Image.open('test.png'))
-#canvas = Canvas(top, width=WIDTH, height=HEIGHT, bg='black')
-#canvas.create_image(0, 0, image=img, anchor=NW)
-#canvas.pack()
