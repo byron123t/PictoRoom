@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import base64
 import io
+import os
 from socket import AF_INET, socket, SOCK_STREAM
 import sys
 from threading import Thread
@@ -51,7 +52,7 @@ def scroll_brush_size(event):
 		brush_size -= 1
 	if event.num == 4 or event.delta == 120:
 		brush_size += 1
-	
+
 	if brush_size < 1:
 		brush_size = 1
 	elif brush_size > 15:
@@ -158,14 +159,15 @@ def handle_incoming(s, frame, canvas):
 		try:
 			data = s.recv(BUF_SIZE)
 			if (not data):
-				sys.exit(1)
+				os._exit(1)
 			foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
 			l = tk.Label(frame, image=foo[-1])
 			l.pack()
 			num_images += 1
 			canvas.config(scrollregion=(0, 0, 300, 300 + frame.winfo_reqheight()))
-		except Exception:
-			sys.exit(1)
+		except Exception as e:
+			sys.stderr.write(str(e))
+			os._exit(1)
 
 def on_configure(event, canvas):
 	canvas.configure(scrollregion=canvas.bbox('all'))
