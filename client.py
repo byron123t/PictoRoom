@@ -24,7 +24,11 @@ def main():
         f.write(json.dumps(d))
         f.close()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
+    try:
+        s.connect((host, port))
+    except ConnectionRefusedError:
+        print('failed to connect to server')
+        sys.exit(1)
     print('connected')
     drawing.main(s)
 
