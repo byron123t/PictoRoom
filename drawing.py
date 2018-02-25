@@ -53,6 +53,8 @@ def exit_click(event, top):
 	close_drawing(top)
 
 def scroll_brush_size(event):
+	if event.widget != canvas:
+		return
 	global brush_size
 	if event.num == 5 or event.delta == -120:
 		brush_size -= 1
