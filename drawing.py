@@ -144,7 +144,8 @@ def handle_incoming(s, frame, canvas):
 		l.pack()
 		num_images += 1
 		canvas.config(scrollregion=(0, 0, 300, 300 * num_images))
-
+		canvas.yview_moveto(1)
+		
 def on_configure(event, canvas):
     canvas.configure(scrollregion=canvas.bbox('all'))
 
