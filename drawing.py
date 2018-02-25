@@ -12,7 +12,7 @@ from tkinter import *
 import png
 from PIL import ImageTk, Image
 
-WIDTH = 300
+WIDTH = 500
 HEIGHT = 300
 image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
 prev_x = 0
@@ -120,7 +120,7 @@ def change_pixels_in_radius(x, y, draw):
 	for i in range(-1 * brush_size + 1, brush_size):
 		for j in range(-1 * brush_size + 1, brush_size):
 			global image
-			if (0 <= y + i and y + i < WIDTH and 0 <= x + j and x + j < HEIGHT):
+			if (0 <= y + i and y + i < HEIGHT and 0 <= x + j and x + j < WIDTH):
 				for k in range(3):
 					image[y+i][(x+j) * 3 + k] = int(draw) * 255
 
@@ -194,15 +194,14 @@ def main(s_s=None):
 
 	superframe.pack()
 
-	send_button = tk.Button(top, text="Send", command=send_message)
-	send_button.pack()
-
 	if (s):
 		Thread(target=lambda: handle_incoming(s, frame, canvas), daemon=True).start()
 
 	img = None
 	draw_png()
 	create_drawing()
+	send_button = tk.Button(top, text="Send", command=send_message)
+	send_button.pack()
 
 	top.mainloop()
 
