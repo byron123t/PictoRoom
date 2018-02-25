@@ -58,7 +58,6 @@ def scroll_brush_size(event):
 		brush_size = 1
 	elif brush_size > 15:
 		brush_size = 15
-	int(brush_size)
 
 def create_drawing():
 	global draw_window_open
@@ -108,7 +107,7 @@ def send_message():
 		is_drawing_in_queue = False
 
 def get_magnitude(delt_x, delt_y):
-	return (delt_x**2 + delt_y**2)**.5
+	return (delt_x ** 2 + delt_y ** 2) ** .5
 
 def draw_line(draw_window, x, y, draw):
 	global prev_x
