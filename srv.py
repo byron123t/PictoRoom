@@ -6,7 +6,7 @@ HOST = '0.0.0.0'
 
 PORT = 8000
 
-BUF_SIZE = 4096
+BUF_SIZE = 16384
 
 socket_list = []
 
