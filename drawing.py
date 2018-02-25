@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter as tk
@@ -131,9 +132,9 @@ def main():
 	new_drawing_button.pack()
 	send_button = tk.Button(top, text="Send", command=send_message)
 	send_button.pack()
-	img = ImageTk.PhotoImage(Image.open('temp.png'))
-	tk.mainloop()
+	img = None
 	draw_png()
+	tk.mainloop()
 img_on_canvas = None
 if __name__ == "__main__":
     main()
