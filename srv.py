@@ -13,7 +13,10 @@ socket_list = []
 
 def handle_client(client, addr):
     while (True):
-        data = client.recv(BUF_SIZE)
+        try:
+            data = client.recv(BUF_SIZE)
+        except ConnectionResetError:
+            data = None
         if (not data):
             print('%s disconnected' % str(addr))
             socket_list.remove(client)
@@ -21,7 +24,10 @@ def handle_client(client, addr):
             return
         print('%s: %s' % (str(addr), data))
         for s in socket_list:
-            s.send(data)
+            try:
+                s.send(data)
+            except BrokenPipeError:
+                pass
 
 
 def main():
