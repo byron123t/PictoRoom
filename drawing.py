@@ -54,13 +54,14 @@ def draw_line(draw_window, prev_x, prev_y, x, y):
 	print("draw line") # Use mouse prev and current position to change array values
 
 def change_pixels_in_radius(brush_size, x, y):
-	def change_pixels_in_radius(brush_size, x, y):
 	for i in range(brush_size):
 		for j in range(brush_size):
 			global image
-			if(brush_size - i < brush_size - 1 && brush_size - j < brush_size - 1)
-				image[x+i][y+j] = [0,0,0]
-				image[x-i][y-j] = [0,0,0]
+			if (brush_size - i < brush_size - 1 and brush_size - j < brush_size - 1):
+				if (0 <= x + i and x + i < WIDTH and 0 <= y + j and y + j < HEIGHT):
+					image[x+i][y+j] = [0,0,0]
+				if (0 <= x - i and x + i < WIDTH and 0 <= y - j and y - j < HEIGHT):
+					image[x-i][y-j] = [0,0,0]
 				
 top = tk.Tk()
 top.title("PictoRoom")
