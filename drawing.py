@@ -102,7 +102,7 @@ def send_message():
 	if (is_drawing_in_queue):
 		if (s):
 			foo = open('temp.png', 'rb').read()
-			s.send(base64.b64encode(foo))
+			s.send(base64.b64encode(foo) + b'\xde\xad\xbe\xef')
 		image = [[255, 255, 255] * WIDTH for x in range(HEIGHT)]
 		draw_png()
 		is_drawing_in_queue = False
@@ -156,13 +156,18 @@ num_images = 0
 
 def handle_incoming(s, frame, canvas):
 	global foo, num_images
+	full_data = b''
 	while (True):
 		try:
 			data = s.recv(BUF_SIZE)
 			if (not data):
 				print('disconnected')
 				os._exit(1)
-			foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(data)))))
+			full_data += data
+			if (data[-4:] != b'\xde\xad\xbe\xef'):
+				continue
+			foo.append(ImageTk.PhotoImage(Image.open(io.BytesIO(base64.b64decode(full_data[:-4])))))
+			full_data = b''
 			l = tk.Label(frame, image=foo[-1])
 			l.pack()
 			num_images += 1

@@ -19,7 +19,7 @@ def handle_client(client, addr):
             socket_list.remove(client)
             client.close()
             return
-        print('%s: %s' % (str(addr), data.decode()))
+        print('%s: %s' % (str(addr), data))
         for s in socket_list:
             s.send(data)
 
