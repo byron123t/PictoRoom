@@ -165,7 +165,8 @@ def handle_incoming(s, frame, canvas):
 			l = tk.Label(frame, image=foo[-1])
 			l.pack()
 			num_images += 1
-			canvas.config(scrollregion=(0, 0, 300, 300 + frame.winfo_reqheight()))
+			l.update_idletasks()
+			canvas.config(scrollregion=(0, 0, 300, frame.winfo_reqheight()))
 			canvas.yview_moveto(1)
 		except Exception as e:
 			sys.stderr.write(traceback.format_exc())
