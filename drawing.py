@@ -5,6 +5,7 @@ import os
 from socket import AF_INET, socket, SOCK_STREAM
 import sys
 from threading import Thread
+import traceback
 
 import tkinter as tk
 from tkinter import *
