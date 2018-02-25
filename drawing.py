@@ -64,7 +64,7 @@ scrollbar = tk.Scrollbar(messages_frame)
 msg_list = tk.Listbox(messages_frame, height=15, width=50,
 						yscrollcommand=scrollbar.set)
 scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-msg_list.pack(side=tk.LEFT, fill=tk.BOTH);
+msg_list.pack(side=tk.LEFT, fill=tk.BOTH)
 msg_list.pack()
 
 messages_frame.pack()
